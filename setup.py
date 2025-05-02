@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="libml",
-    version="0.1.5",
+    version="0.1.6",
     description="ML preprocessing library",
     author="Your Name",
     author_email="your@email.com",
