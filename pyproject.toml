@@ -1,3 +1,4 @@
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
@@ -12,8 +13,13 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-    "nltk>=3.7"
+    "nltk>=3.7",
+    "pandas>=1.3" 
 ]
+
+[tool.setuptools]
+packages = ["libml"]
+package-dir = {libml = "src/libml"}  # Maps package to src directory
 
 [project.urls]
 Homepage = "https://github.com/remla25-team14/lib-ml"
