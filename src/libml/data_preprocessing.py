@@ -21,7 +21,7 @@ def preprocess_reviews(dataset):
         return review
 
     corpus = []
-    for i in range(len(dataset)):
+    for i in range(len(dataset['Review'])):
         corpus.append(clean_review(dataset['Review'][i]))
     return corpus
 
