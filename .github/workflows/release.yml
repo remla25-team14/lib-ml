@@ -19,6 +19,17 @@ jobs:
           # Fetch full history for setuptools-scm to work properly
           fetch-depth: 0
 
+      - name: Update dependency versions
+        run: |
+          # Get latest release version for lib-version
+          LIB_VERSION_TAG=$(curl -s https://api.github.com/repos/remla25-team14/lib-version/releases/latest | jq -r .tag_name)
+          
+          # Replace placeholders
+          sed -i "s/{TAG}/$LIB_VERSION_TAG/g" requirements.txt
+          if [ -f "requirements-dev.txt" ]; then
+            sed -i "s/{TAG}/$LIB_VERSION_TAG/g" requirements-dev.txt
+          fi
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
