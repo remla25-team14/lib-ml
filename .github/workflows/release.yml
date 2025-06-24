@@ -12,7 +12,6 @@ jobs:
   build-and-publish:
     name: Build and Publish to GitHub Packages
     runs-on: ubuntu-latest
-    # Required permissions for publishing to GitHub Packages
     permissions:
       contents: read
       packages: write
@@ -46,14 +45,11 @@ jobs:
         run: python -m build
 
       - name: Publish package to GitHub Packages
-        # This action is for PyPI but can be configured for other registries
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # Use the GITHUB_TOKEN provided by GitHub Actions
+          user: __token__
           password: ${{ secrets.GITHUB_TOKEN }}
-          # Specify the URL for the GitHub Packages registry
-          # IMPORTANT: Replace 'OWNER' with your GitHub username or organization name
-          repository_url: https://pypi.pkg.github.com/remla25-team14
+          repository-url: https://pypi.pkg.github.com/remla25-team14
 
 
   bump-version-on-main:
