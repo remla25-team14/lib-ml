@@ -1,22 +1,27 @@
-name: Release lib-ml
+# .github/workflows/release-lib-ml.yml
+
+name: Release lib-ml Python Package
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*' # Trigger on version tags like v1.0.0, v1.2.3, etc.
 
 jobs:
+  # Job 1: Build the package and publish it to GitHub Packages
   build-and-publish:
+    name: Build and Publish to GitHub Packages
     runs-on: ubuntu-latest
+    # Required permissions for publishing to GitHub Packages
     permissions:
       contents: read
       packages: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Fetch full history for setuptools-scm to work properly
+          # Fetch all history so setuptools-scm can determine the version
           fetch-depth: 0
 
       - name: Set up Python
@@ -30,29 +35,57 @@ jobs:
           pip install build setuptools-scm
 
       - name: Verify version from Git tag
+        id: get_version
         run: |
-          echo "Git tag: ${{ github.ref_name }}"
-          python -c "from setuptools_scm import get_version; print(f'Setuptools-scm version: {get_version()}')"
+          # setuptools-scm will derive the version from the Git tag
+          VERSION=$(python -c "from setuptools_scm import get_version; print(get_version())")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Derived version: $VERSION"
 
       - name: Build package
-        run: |
-          python -m build
+        run: python -m build
 
-      - name: Publish to PyPI
+      - name: Publish package to GitHub Packages
+        # This action is for PyPI but can be configured for other registries
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          # Use PyPI as primary target
-
-      - name: Publish to GitHub Packages (fallback)
-        if: failure()
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
+          # Use the GITHUB_TOKEN provided by GitHub Actions
           password: ${{ secrets.GITHUB_TOKEN }}
-          repository-url: https://upload.pypi.org/legacy/
+          # Specify the URL for the GitHub Packages registry
+          # IMPORTANT: Replace 'OWNER' with your GitHub username or organization name
+          repository_url: https://pypi.pkg.github.com/remla25-team14
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+
+  bump-version-on-main:
+    name: Bump Version on Main Branch
+    runs-on: ubuntu-latest
+    needs: build-and-publish 
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
         with:
-          name: dist
-          path: dist/ 
+          ref: 'main' 
+          
+      - name: Install bump-my-version
+        run: pip install bump-my-version
+
+      - name: Get the released version tag
+        run: echo "RELEASE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump to next pre-release version
+
+        run: |
+          echo "Bumping version after release of ${{ env.RELEASE_TAG }}"
+          # Use bump-my-version to increment the patch number and add a pre-release tag
+          bump-my-version bump patch --new-version $(python -c "from setuptools_scm.version import ScmVersion; v = ScmVersion('${{ env.RELEASE_TAG }}'); print(v.guess_next_version(branch_name='main'))")
+      
+      - name: Push the version bump to main
+        run: git push origin main
