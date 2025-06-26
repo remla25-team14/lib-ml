@@ -38,19 +38,6 @@ jobs:
         run: |
           python -m build
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          # Use PyPI as primary target
-
-      - name: Publish to GitHub Packages (fallback)
-        if: failure()
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.GITHUB_TOKEN }}
-          repository-url: https://upload.pypi.org/legacy/
-
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
